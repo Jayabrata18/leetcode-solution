@@ -14,35 +14,62 @@
  * }
  */
 class Solution {
-    static TreeSet<Integer> preorder(TreeNode root,TreeSet<Integer> set){
-        if(root == null) return set;
-        set  = preorder(root.left, set);
-        set.add(root.val);
-        set  = preorder(root.right, set);
-        return set;
-    }
     public List<List<Integer>> closestNodes(TreeNode root, List<Integer> queries) {
-    List<List<Integer>> result = new ArrayList<>();
-    TreeSet<Integer> set = new TreeSet<>();
-  
-    set = preorder(root, set);
-    for (int target : queries) {
-        List<Integer> closestNode = new ArrayList<>();
-        if(set.floor(target)!=null){
-                closestNode.add(set.floor(target));
-        }
-        else{
-                closestNode.add(-1);
+        List<List<Integer>> res = new ArrayList<>();
+        TreeNode newNode = rebalanceBST(root);
+        
+        for (int query : queries) {
+            int left = -1;
+            int right = -1;
+            TreeNode cur = newNode;
+            
+            while (cur != null) {
+                if (query == cur.val) {
+                    left = query;
+                    right = query;
+                    break;
+                } else if (query < cur.val) {
+                    right = cur.val;
+                    cur = cur.left;
+                } else {
+                    left = cur.val;
+                    cur = cur.right;
+                }
+            }
+            
+            res.add(Arrays.asList(left, right)); // Store values directly in the result list
         }
         
-        if(set.ceiling(target)!=null){
-                closestNode.add(set.ceiling(target));
-        }
-        else{
-                closestNode.add(-1);
-        }
-        result.add(closestNode);
+        return res;
     }
-        return result;
+
+    List<TreeNode> list;
+
+    private TreeNode rebalanceBST(TreeNode node) {
+        if (node == null) {
+            return null;
+        }
+        list = new ArrayList<>();
+        inOrder(node);
+        return constructBST(0, list.size() - 1);
+    }
+
+    private TreeNode constructBST(int left, int right) {
+        if (left > right) {
+            return null;
+        }
+        int mid = left + (right - left) / 2;
+        TreeNode node = list.get(mid);
+        node.left = constructBST(left, mid - 1);
+        node.right = constructBST(mid + 1, right);
+        return node;
+    }
+
+    private void inOrder(TreeNode node) {
+        if (node == null) 
+            return ;
+        inOrder(node.left);
+        list.add(node);
+        inOrder(node.right);
     }
 }
