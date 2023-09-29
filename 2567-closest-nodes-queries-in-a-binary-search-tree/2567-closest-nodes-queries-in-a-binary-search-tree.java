@@ -14,45 +14,35 @@
  * }
  */
 class Solution {
-    public List<List<Integer>> closestNodes(TreeNode root, List<Integer> queries) {
-        List<List<Integer>> list = new ArrayList<>();
-        int max = -1;
-        int min = -1;
-        TreeSet<Integer> set = new TreeSet<>();
-        inorder(root, set);
-        int idx = 0;
-        for(int q : queries){
-            ArrayList<Integer> base = new ArrayList<>();
-            if(set.contains(q)){
-                min = q;
-                max = q;
-            }
-            else{
-                Integer high = set.higher(q);
-                if(high == null){
-                    max = -1;
-                } else{
-                    max = high;
-                }
-                Integer low = set.lower(q);
-                if(low == null){
-                    min = -1;
-                } else{
-                    min = low;
-                }
-            }
-            base.add(min);
-            base.add(max);
-            list.add(base);
-        }
-        return list;
-    }
-    public void inorder(TreeNode root, TreeSet<Integer> set){
-        if(root == null){
-            return;
-        }
-        inorder(root.left, set);
+    static TreeSet<Integer> preorder(TreeNode root,TreeSet<Integer> set){
+        if(root == null) return set;
+        set  = preorder(root.left, set);
         set.add(root.val);
-        inorder(root.right, set);
+        set  = preorder(root.right, set);
+        return set;
+    }
+    public List<List<Integer>> closestNodes(TreeNode root, List<Integer> queries) {
+    List<List<Integer>> result = new ArrayList<>();
+    TreeSet<Integer> set = new TreeSet<>();
+  
+    set = preorder(root, set);
+    for (int target : queries) {
+        List<Integer> closestNode = new ArrayList<>();
+        if(set.floor(target)!=null){
+                closestNode.add(set.floor(target));
+        }
+        else{
+                closestNode.add(-1);
+        }
+        
+        if(set.ceiling(target)!=null){
+                closestNode.add(set.ceiling(target));
+        }
+        else{
+                closestNode.add(-1);
+        }
+        result.add(closestNode);
+    }
+        return result;
     }
 }
