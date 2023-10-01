@@ -13,68 +13,60 @@
  *     }
  * }
  */
-class Solution {
-    static int leastCol;
-    static int mostCol;
 
-    static List<List<Integer>> ans;
-    static PriorityQueue<Pair> pq;
+class Solution {
     
     public List<List<Integer>> verticalTraversal(TreeNode root) {
-        ans=new ArrayList<List<Integer>>();
-
-        bfs(root);
-        int sumCol=mostCol-leastCol+1;
-
-        for(int i=0;i<sumCol;i++)
-            ans.add(new ArrayList<Integer>());
         
-        while(!pq.isEmpty()){
-            Pair curr=pq.poll();
-            ((ArrayList<Integer>)ans.get(-leastCol+curr.col)).add(curr.node.val);
-        }
+        // map of vertical level(v),  horizontal level(h) ,all nodes at (v,h)
+        TreeMap<Integer, TreeMap<Integer, PriorityQueue<Integer>>> map = new TreeMap<>();
         
-        return (List<List<Integer>> )ans;
-    }
-    public static void bfs(TreeNode root){
-        Queue<Pair> q=new LinkedList<Pair>();
-        pq =new PriorityQueue<Pair>();
-        int row=0;
-        int col=0;
-        q.add(new Pair(row,col, root));
-        leastCol=0;
-        mostCol=0;
-        row=1;
+        vertical(root, map, 0, 0); // traverse in tree and fill the map 
         
-        while(!q.isEmpty()){
-            Pair curr = q.poll();
-            pq.add(curr);
+		List<List<Integer>> res = new ArrayList<>();
+        for(TreeMap<Integer, PriorityQueue<Integer>> vlevels: map.values()){
             
-            if(curr.node.left!=null){
-                q.add(new Pair(curr.row+1, curr.col-1, curr.node.left));
-                leastCol=Math.min(leastCol, curr.col-1);
-            }
-            if(curr.node.right!=null){
-                q.add(new Pair(curr.row+1, curr.col+1, curr.node.right));
-                mostCol=Math.max(mostCol, curr.col+1);
-
+            res.add(new ArrayList<>()); // add a new list
+            
+            for(PriorityQueue<Integer> hlevels: vlevels.values()){
+                
+                // add all elements of hlevels pq in last added list
+                while(!hlevels.isEmpty()){
+                    res.get(res.size()-1).add(hlevels.poll());
+                }
             }
         }
+        return res;
     }
     
-    static class Pair implements Comparable<Pair>{
-        int col;
-        int row;
-        TreeNode node;
-        public Pair(int r,int c, TreeNode n){
-            row=r;
-            col=c;
-            node=n;
-        }
-        public int compareTo(Pair p){
-            if(col!=p.col) return col-p.col;
-            if(row!=p.row) return row-p.row;
-            return node.val-p.node.val;
-        }
+    void vertical(TreeNode root, TreeMap<Integer,TreeMap<Integer,PriorityQueue<Integer>>> map, int vlevel, int hlevel){
+        
+        if(root == null) return;
+        
+        // if vertcal level is not already present in map
+        if(!map.containsKey(vlevel)) map.put(vlevel, new TreeMap<>());
+        
+        // if horizontal level is not already present in map
+        if(!map.get(vlevel).containsKey(hlevel)) 
+            map.get(vlevel).put(hlevel, new PriorityQueue<>());
+        
+        // put current node in map
+        map.get(vlevel).get(hlevel).add(root.val);
+        
+        /* call in left : 
+                  while calling in left
+                            hlevel will increase by 1 
+                            vlevel will decrease by 1
+        */
+        vertical(root.left, map, vlevel-1, hlevel+1);
+        
+        /* call in right : 
+                  while calling in right
+                            hlevel will increase by 1 
+                            vlevel will increase by 1
+        */
+        vertical(root.right, map, vlevel+1, hlevel+1);
+        
     }
+    
 }
